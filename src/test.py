@@ -7,6 +7,7 @@ import cv2
 import tensorflow as tf
 import dlib
 import collections
+import argparse
 from sklearn.svm import SVC
 from tensorflow.python.platform import gfile
 from tensorflow.python.training import training
@@ -51,6 +52,10 @@ def load_model(model, input_map=None):
         saver.restore(tf.get_default_session(), os.path.join(model_exp, ckpt_file))
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', help = 'Path of the image you want to test on.',required=True)
+    args = parser.parse_args()
+	
     CLASSIFIER_PATH = './models/classifier.pkl'
     VIDEO_PATH = ''
     FACE_MODE_PATH = './models/20180402-114759.pb'
@@ -58,7 +63,7 @@ def main():
     detector = dlib.get_frontal_face_detector()
     sp = dlib.shape_predictor(predictor_path)
 
-    file_name = 't1.jpg'
+    file_name = args.path
 
     with open(CLASSIFIER_PATH, 'rb') as file:
         model, class_names = pickle.load(file)
@@ -101,7 +106,8 @@ def main():
                 print("Name: {}, Probability: {}".format(best_name, best_class_probabilities))
 
                 cv2.rectangle(image, (x,y), (x+w, y+h), (0,255,0),2)
-                cv2.putText(image, "Face {}".format(best_name), (x -10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255,0), 2)
+                cv2.putText(image, "{} | {}".format(best_name, str(round(best_class_probabilities[0], 3))),
+                 (x -10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255,0), 2)
 
             cv2.imshow("face", image)
             cv2.waitKey(0)
